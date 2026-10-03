@@ -1,4 +1,5 @@
-// Renders the 512px store icon from tool/icon/icon.svg.
+// Renders the 512px store icon from tool/icon/icon.svg and the 1024x500
+// feature graphic from tool/icon/feature.html.
 // Usage: node tool/icon/render.js  (needs Playwright)
 // The legacy launcher PNGs (res/mipmap-*/ic_launcher.png, API < 26) are kept
 // from the original build.
@@ -22,5 +23,11 @@ const file = path.join(root, 'store/icon-512.png');
   fs.mkdirSync(path.dirname(file), { recursive: true });
   await page.screenshot({ path: file });
   console.log('wrote', path.relative(root, file));
+
+  const feature = path.join(root, 'store/feature-graphic.png');
+  await page.setViewportSize({ width: 1024, height: 500 });
+  await page.goto('file://' + path.join(__dirname, 'feature.html'));
+  await page.screenshot({ path: feature });
+  console.log('wrote', path.relative(root, feature));
   await browser.close();
 })();

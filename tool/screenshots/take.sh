@@ -43,12 +43,6 @@ tap() {
   return 1
 }
 
-rotate() {
-  adb shell cmd window user-rotation lock "$1" >/dev/null 2>&1 ||
-    adb shell settings put system user_rotation "$1"
-  sleep 2
-}
-
 open_sample() {
   adb shell am force-stop $PKG
   adb shell am start -W -n $PKG/.MainActivity \
@@ -87,7 +81,7 @@ open_sample
 shot 01-phone-preview-light
 adb shell input swipe 540 1900 540 500 400; sleep 2
 shot 02-phone-preview-scrolled-light
-tap "Edit" && shot 03-phone-edit-light
+sleep 2; tap "Edit" && shot 03-phone-edit-light
 adb shell input keyevent KEYCODE_BACK; sleep 1
 
 # --- Phone, dark -------------------------------------------------------------
@@ -95,14 +89,22 @@ adb shell cmd uimode night yes
 open_sample
 shot 04-phone-preview-dark
 
-# --- Landscape (wide layout), dark --------------------------------------------
-rotate 1
+# --- Tablet (wide layout), dark ----------------------------------------------
+# Rotating is unreliable on CI emulators; a tablet-sized display gives the same
+# wide layout (and doubles as Play Store tablet screenshots).
+adb shell wm size 2560x1600
+adb shell wm density 320
+sleep 3
 open_sample
-shot 05-landscape-preview-dark
-tap "Split view" && shot 06-landscape-split-dark
-tap "Edit" && shot 07-landscape-edit-dark
+shot 05-tablet-preview-dark
+tap "Split view" && shot 06-tablet-split-dark
+tap "Search" && adb shell input text "ECTS" && sleep 1 && tap "Next match" && adb shell input keyevent KEYCODE_BACK && sleep 2 && shot 07-tablet-split-search-dark
+adb shell input keyevent KEYCODE_BACK; sleep 1
+tap "Edit" && shot 08-tablet-edit-dark
+adb shell wm size reset
+adb shell wm density reset
+sleep 3
 
-rotate 0
 adb shell cmd uimode night no
 
 # --- Launcher icon -----------------------------------------------------------

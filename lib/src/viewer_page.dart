@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 
 import 'about.dart';
 import 'file_bridge.dart';
+import 'markdown_blocks.dart';
 import 'markdown_editor.dart';
 import 'markdown_preview.dart';
 import 'sample.dart';
@@ -26,8 +27,19 @@ class ViewerPage extends StatefulWidget {
 
 class _ViewerPageState extends State<ViewerPage> {
   late final FileBridge _bridge = widget.bridge ?? FileBridge();
-  final _controller = TextEditingController();
+  final _controller = MarkdownEditingController();
   final _editorFocus = FocusNode();
+  final _editorScroll = ScrollController();
+  final _previewScroll = ScrollController();
+  final _searchController = TextEditingController();
+  final _searchFocus = FocusNode();
+
+  /// Recreated per document, so undo never reaches into the previous file.
+  var _undo = UndoHistoryController();
+
+  /// The editor stays mounted (offstage in preview) so its undo history
+  /// survives mode switches; the key moves it between layouts.
+  var _editorKey = GlobalKey<MarkdownEditorState>();
 
   bool _hasDocument = false;
   String _fileName = 'Untitled.md';
@@ -36,6 +48,18 @@ class _ViewerPageState extends State<ViewerPage> {
 
   ViewMode _mode = ViewMode.preview;
   double _fontSize = 16;
+  bool _syncScroll = true;
+
+  /// The split-view pane the user last touched; only it drives the other one.
+  ScrollController? _scrollLeader;
+
+  bool _searching = false;
+  List<int> _matches = const [];
+  int _matchIndex = 0;
+
+  /// Bumped to make the preview scroll to [_revealOffset].
+  int _revealRequest = 0;
+  int? _revealOffset;
 
   /// Whether the screen is wide enough for split view (set in build).
   bool _wide = false;
@@ -71,6 +95,11 @@ class _ViewerPageState extends State<ViewerPage> {
     _previewTimer?.cancel();
     _controller.dispose();
     _editorFocus.dispose();
+    _editorScroll.dispose();
+    _previewScroll.dispose();
+    _searchController.dispose();
+    _searchFocus.dispose();
+    _undo.dispose();
     super.dispose();
   }
 
@@ -89,8 +118,19 @@ class _ViewerPageState extends State<ViewerPage> {
 
   void _load(OpenedFile file, {ViewMode mode = ViewMode.preview}) {
     _previewTimer?.cancel();
-    _controller.value = TextEditingValue(text: file.content);
+    final oldUndo = _undo;
+    WidgetsBinding.instance.addPostFrameCallback((_) => oldUndo.dispose());
+    _undo = UndoHistoryController();
+    _editorKey = GlobalKey<MarkdownEditorState>();
+    // A valid selection, so the undo history records the loaded text as its
+    // starting point.
+    _controller.value = TextEditingValue(
+      text: file.content,
+      selection: const TextSelection.collapsed(offset: 0),
+    );
+    if (_previewScroll.hasClients) _previewScroll.jumpTo(0);
     setState(() {
+      _closeSearch();
       _hasDocument = true;
       _fileName = file.name;
       _uri = file.uri;
@@ -103,6 +143,7 @@ class _ViewerPageState extends State<ViewerPage> {
   void _onTextChanged() {
     if (_dirty != _shownDirty) setState(() {});
     if (_controller.text == _previewText) return;
+    if (_searching) _updateMatches();
     _previewTimer?.cancel();
     _previewTimer = Timer(const Duration(milliseconds: 250), () {
       if (mounted) setState(() => _previewText = _controller.text);
@@ -230,6 +271,71 @@ class _ViewerPageState extends State<ViewerPage> {
     }
   }
 
+  // ---- Search ---------------------------------------------------------------
+
+  void _openSearch() {
+    setState(() => _searching = true);
+    _searchFocus.requestFocus();
+  }
+
+  /// Only resets state; callers rebuild.
+  void _closeSearch() {
+    _searching = false;
+    _searchController.clear();
+    _matches = const [];
+    _revealOffset = null;
+    _controller.setSearch('', null);
+  }
+
+  void _updateMatches() {
+    final query = _searchController.text;
+    _matches = findAll(_controller.text, query);
+    if (_matchIndex >= _matches.length) _matchIndex = 0;
+    final current = _matches.isEmpty ? null : _matches[_matchIndex];
+    _revealOffset = current;
+    _controller.setSearch(query, current);
+  }
+
+  void _onQueryChanged(String _) {
+    _syncPreview();
+    _matchIndex = 0;
+    setState(_updateMatches);
+    _revealMatch();
+  }
+
+  void _step(int delta) {
+    if (_matches.isEmpty) return;
+    _syncPreview();
+    setState(() {
+      _matchIndex = (_matchIndex + delta) % _matches.length;
+      _updateMatches();
+    });
+    _revealMatch();
+  }
+
+  /// Scrolls the visible panes to the current match.
+  void _revealMatch() {
+    final offset = _revealOffset;
+    if (offset == null) return;
+    _scrollLeader = null;
+    setState(() => _revealRequest++);
+    if (_shown != ViewMode.preview) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _editorKey.currentState?.reveal(offset),
+      );
+    }
+  }
+
+  /// Split view: tapping a block in the preview puts the cursor there.
+  void _revealInEditor(int offset) {
+    _scrollLeader = null;
+    _controller.selection = TextSelection.collapsed(offset: offset);
+    _editorFocus.requestFocus();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _editorKey.currentState?.reveal(offset),
+    );
+  }
+
   void _changeFontSize(double delta) =>
       setState(() => _fontSize = (_fontSize + delta).clamp(10, 32));
 
@@ -249,6 +355,10 @@ class _ViewerPageState extends State<ViewerPage> {
       e is PlatformException ? (e.message ?? e.code) : e.toString();
 
   Future<void> _handleBack() async {
+    if (_searching) {
+      setState(_closeSearch);
+      return;
+    }
     if (_hasDocument && _mode != ViewMode.preview) {
       _setMode(ViewMode.preview);
       return;
@@ -266,7 +376,10 @@ class _ViewerPageState extends State<ViewerPage> {
     _wide = wide;
     _shownDirty = _dirty;
     return PopScope(
-      canPop: !_dirty && (!_hasDocument || _mode == ViewMode.preview),
+      canPop:
+          !_dirty &&
+          !_searching &&
+          (!_hasDocument || _mode == ViewMode.preview),
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _handleBack();
       },
@@ -274,6 +387,9 @@ class _ViewerPageState extends State<ViewerPage> {
         bindings: {
           const SingleActivator(LogicalKeyboardKey.keyS, control: true): _save,
           const SingleActivator(LogicalKeyboardKey.keyO, control: true): _open,
+          const SingleActivator(LogicalKeyboardKey.keyF, control: true): () {
+            if (_hasDocument) _openSearch();
+          },
         },
         child: Scaffold(
           appBar: _buildAppBar(wide),
@@ -352,6 +468,12 @@ class _ViewerPageState extends State<ViewerPage> {
             icon: const Icon(Icons.save_outlined),
             onPressed: canSave ? _save : null,
           ),
+        if (wide && _hasDocument)
+          IconButton(
+            tooltip: 'Search',
+            icon: const Icon(Icons.search, semanticLabel: 'Search'),
+            onPressed: _searching ? () => setState(_closeSearch) : _openSearch,
+          ),
         if (wide) ...[
           IconButton(
             tooltip: 'Smaller text',
@@ -379,6 +501,7 @@ class _ViewerPageState extends State<ViewerPage> {
         _buildMenu(wide, dark),
         const SizedBox(width: 4),
       ],
+      bottom: _searching && _hasDocument ? _buildSearchBar() : null,
     );
   }
 
@@ -407,6 +530,14 @@ class _ViewerPageState extends State<ViewerPage> {
             title: Text('Save as…'),
           ),
         ),
+      if (_hasDocument && !wide)
+        PopupMenuItem(
+          value: _openSearch,
+          child: const ListTile(
+            leading: Icon(Icons.search),
+            title: Text('Search'),
+          ),
+        ),
       if (_hasDocument)
         PopupMenuItem(
           value: _copyAll,
@@ -414,6 +545,12 @@ class _ViewerPageState extends State<ViewerPage> {
             leading: Icon(Icons.content_copy),
             title: Text('Copy all'),
           ),
+        ),
+      if (_shown == ViewMode.split)
+        CheckedPopupMenuItem(
+          value: () => setState(() => _syncScroll = !_syncScroll),
+          checked: _syncScroll,
+          child: const Text('Sync scrolling'),
         ),
       PopupMenuItem(
         value: _showSample,
@@ -465,34 +602,147 @@ class _ViewerPageState extends State<ViewerPage> {
     );
   }
 
+  PreferredSizeWidget _buildSearchBar() {
+    final theme = Theme.of(context);
+    final count = _searchController.text.isEmpty
+        ? ''
+        : _matches.isEmpty
+        ? '0/0'
+        : '${_matchIndex + 1}/${_matches.length}';
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(56),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _searchController,
+                focusNode: _searchFocus,
+                onChanged: _onQueryChanged,
+                onSubmitted: (_) {
+                  _step(1);
+                  _searchFocus.requestFocus();
+                },
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: 'Search',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixText: count,
+                  suffixStyle: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ),
+            IconButton(
+              tooltip: 'Previous match',
+              icon: const Icon(Icons.keyboard_arrow_up),
+              onPressed: _matches.isEmpty ? null : () => _step(-1),
+            ),
+            IconButton(
+              tooltip: 'Next match',
+              icon: const Icon(Icons.keyboard_arrow_down),
+              onPressed: _matches.isEmpty ? null : () => _step(1),
+            ),
+            IconButton(
+              tooltip: 'Close search',
+              icon: const Icon(Icons.close),
+              onPressed: () => setState(_closeSearch),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBody() {
     if (!_hasDocument) return _buildWelcome();
+    final editor = _buildEditor();
     switch (_shown) {
       case ViewMode.preview:
-        return _buildPreview();
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            // Kept alive (but hidden) for its undo history.
+            Offstage(child: editor),
+            _buildPreview(),
+          ],
+        );
       case ViewMode.edit:
-        return _buildEditor();
+        return editor;
       case ViewMode.split:
         return Row(
           children: [
-            Expanded(child: _buildEditor()),
+            Expanded(child: _syncedPane(_editorScroll, _previewScroll, editor)),
             const VerticalDivider(width: 1),
-            Expanded(child: _buildPreview()),
+            Expanded(
+              child: _syncedPane(
+                _previewScroll,
+                _editorScroll,
+                _buildPreview(onTapSource: _revealInEditor),
+              ),
+            ),
           ],
         );
     }
   }
 
-  Widget _buildPreview() => MarkdownPreview(
-    data: _previewText,
-    fontSize: _fontSize,
-    onTapLink: _openLink,
-  );
+  /// Wraps a split-view pane so scrolling it scrolls the other pane to the
+  /// same relative position.
+  Widget _syncedPane(
+    ScrollController own,
+    ScrollController other,
+    Widget child,
+  ) {
+    return Listener(
+      onPointerDown: (_) => _scrollLeader = own,
+      onPointerSignal: (_) => _scrollLeader = own,
+      child: NotificationListener<ScrollUpdateNotification>(
+        onNotification: (n) {
+          if (!_syncScroll ||
+              _scrollLeader != own ||
+              n.metrics.axis != Axis.vertical ||
+              !other.hasClients) {
+            return false;
+          }
+          final max = n.metrics.maxScrollExtent;
+          final fraction = max <= 0 ? 0.0 : n.metrics.pixels / max;
+          final target = other.position;
+          target.jumpTo(
+            (fraction * target.maxScrollExtent).clamp(
+              target.minScrollExtent,
+              target.maxScrollExtent,
+            ),
+          );
+          return false;
+        },
+        child: child,
+      ),
+    );
+  }
+
+  Widget _buildPreview({void Function(int offset)? onTapSource}) =>
+      MarkdownPreview(
+        data: _previewText,
+        fontSize: _fontSize,
+        onTapLink: _openLink,
+        onTapSource: onTapSource,
+        scrollController: _previewScroll,
+        searchQuery: _searching ? _searchController.text : '',
+        revealOffset: _searching ? _revealOffset : null,
+        revealRequest: _revealRequest,
+      );
 
   Widget _buildEditor() => MarkdownEditor(
+    key: _editorKey,
     controller: _controller,
     focusNode: _editorFocus,
     fontSize: _fontSize,
+    undoController: _undo,
+    scrollController: _editorScroll,
   );
 
   Widget _buildWelcome() {

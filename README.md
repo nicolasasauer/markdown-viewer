@@ -9,7 +9,7 @@ A small Android app for reading and editing Markdown (`.md`) files. It shows up 
   <img src="docs/screenshots/04-phone-preview-dark.png" width="200" alt="Preview, dark">
 </p>
 <p>
-  <img src="docs/screenshots/06-landscape-split-dark.png" width="600" alt="Split view">
+  <img src="docs/screenshots/06-tablet-split-dark.png" width="600" alt="Split view">
 </p>
 
 Screenshots are taken automatically on an Android emulator by `.github/workflows/screenshots.yml`.
@@ -21,8 +21,16 @@ Modes at the top, plus split view on wide screens:
 | Mode | What it does |
 | --- | --- |
 | 👁 **Preview** | The rendered document (text is selectable) |
-| ✎ **Edit** | The raw Markdown, editable |
+| ✎ **Edit** | The raw Markdown, editable, with a formatting bar |
 | ◫ **Split** *(tablet / landscape)* | Editor and live preview side by side |
+
+- **Formatting bar** below the editor: undo/redo, heading (# → ## → ### → none), bold,
+  italic, strikethrough, code, link, bulleted/numbered list, checklist, quote, code block,
+  table, horizontal line. Applies to the selection, or inserts an empty template.
+- **Search** (🔍, Ctrl+F): highlights all hits in the editor and the preview, ↑/↓ jump between
+  them and scroll there.
+- **Split view**: scrolling one side scrolls the other (*Sync scrolling* in ⋮); tapping a
+  paragraph in the preview puts the editor cursor there.
 
 - GitHub Flavored Markdown: headings, lists, task lists, tables, code blocks, quotes,
   strikethrough, links (open in the browser). Images are shown as placeholders.
@@ -41,8 +49,10 @@ Modes at the top, plus split view on wide screens:
 | Reading intents, SAF open / save as, writing back, opening links | `android/app/src/main/kotlin/com/nicolas/markdown_viewer/MainActivity.kt` |
 | Platform channel `markdown_viewer/file` (Dart side) | `lib/src/file_bridge.dart` |
 | Screen, modes, save / discard logic | `lib/src/viewer_page.dart` |
-| Rendered preview and its styles | `lib/src/markdown_preview.dart` |
-| Editor | `lib/src/markdown_editor.dart` |
+| Rendered preview (block by block), search highlight, styles | `lib/src/markdown_preview.dart` |
+| Splitting the source into blocks (preview ↔ source mapping), search | `lib/src/markdown_blocks.dart` |
+| Editor, formatting bar, search highlight | `lib/src/markdown_editor.dart` |
+| Formatting actions (pure text edits) | `lib/src/markdown_format.dart` |
 | About dialog, app name and version | `lib/src/about.dart` |
 
 Rendering uses [`flutter_markdown_plus`](https://pub.dev/packages/flutter_markdown_plus).
@@ -56,7 +66,8 @@ The launcher icon is defined in `tool/icon/icon.svg`:
 - adaptive icon (API 26+, including the themed/monochrome variant):
   `res/drawable/ic_launcher_{background,foreground,monochrome}.xml`, `res/mipmap-anydpi-v26/ic_launcher.xml`
 - `res/mipmap-*/ic_launcher.png` for older Android versions
-- store icon `store/icon-512.png`: `node tool/icon/render.js` (needs Playwright)
+- store icon `store/icon-512.png` and feature graphic `store/feature-graphic.png`
+  (from `tool/icon/feature.html`): `node tool/icon/render.js` (needs Playwright)
 
 ## Google Play
 
@@ -77,7 +88,7 @@ GitHub Actions:
 
 - `build.yml`: analyze, tests, split APKs and an App Bundle (`.aab`) as artifacts
 - `screenshots.yml`: starts an Android emulator, opens `tool/screenshots/sample.md` via a
-  real VIEW intent and commits screenshots to `docs/screenshots/`
+  real VIEW intent and commits phone and tablet screenshots to `docs/screenshots/`
 
 ### Release signing
 
@@ -96,3 +107,7 @@ Locally, create `android/key.properties` (git-ignored) with `storeFile`, `storeP
 
 Note: to install over the old build (`com.nicolas.markdown_viewer`) without uninstalling,
 the APK must be signed with the same key as before.
+
+## License
+
+[MIT](LICENSE)

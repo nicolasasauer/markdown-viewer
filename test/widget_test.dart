@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:markdown_viewer/main.dart';
 import 'package:markdown_viewer/src/about.dart';
+import 'package:markdown_viewer/src/markdown_preview.dart';
 
 void main() {
   const channel = MethodChannel('markdown_viewer/file');
@@ -69,6 +70,11 @@ void main() {
 
     expect(find.text('notes.md'), findsOneWidget);
     expect(find.text('Notes'), findsOneWidget); // heading without "#"
+    // The preview fills the screen (the hidden editor must not shrink it).
+    expect(
+      tester.getSize(find.byType(MarkdownPreview)).height,
+      greaterThan(300),
+    );
     expect(find.byType(TextField), findsNothing);
   });
 
@@ -232,5 +238,118 @@ void main() {
       multiLine: true,
     ).firstMatch(pubspec)!.group(1);
     expect(appVersion, version);
+  });
+
+  testWidgets('formatting bar makes the selection bold; undo survives modes', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MarkdownViewerApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Edit'));
+    await tester.pumpAndSettle();
+
+    await tester.pump(const Duration(seconds: 1)); // undo history throttle
+    final field = tester.widget<TextField>(find.byType(TextField));
+    field.controller!.selection = const TextSelection(
+      baseOffset: 2,
+      extentOffset: 7,
+    ); // "Notes"
+    await tester.tap(find.byTooltip('Bold'));
+    await tester.pumpAndSettle();
+    expect(field.controller!.text, startsWith('# **Notes**'));
+    await tester.pump(const Duration(seconds: 1)); // undo history throttle
+
+    // Undo still works after a round trip through the preview.
+    await tester.tap(find.byTooltip('Preview'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Edit'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Undo'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<TextField>(find.byType(TextField)).controller!.text,
+      sample,
+    );
+  });
+
+  testWidgets('search counts matches and highlights them', (tester) async {
+    initialFile = {
+      'name': 'notes.md',
+      'content': '# Apple\n\nOne apple.\n\nNo fruit.\n\nAPPLE pie.',
+      'uri': null,
+    };
+    useWideScreen(tester);
+    await tester.pumpWidget(const MarkdownViewerApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('Search'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, 'apple');
+    await tester.pumpAndSettle();
+    expect(find.text('1/3'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Next match'));
+    await tester.pumpAndSettle();
+    expect(find.text('2/3'), findsOneWidget);
+
+    // The hit is highlighted inside the rendered paragraph.
+    final hit = findSpan(tester, 'apple');
+    expect(hit.style?.backgroundColor, isNotNull);
+
+    await tester.tap(find.byTooltip('Close search'));
+    await tester.pumpAndSettle();
+    expect(find.text('2/3'), findsNothing);
+  });
+
+  testWidgets('split view: tapping the preview moves the editor cursor', (
+    tester,
+  ) async {
+    initialFile = {
+      'name': 'notes.md',
+      'content': '# Title\n\nFirst paragraph.\n\nSecond paragraph.',
+      'uri': null,
+    };
+    useWideScreen(tester);
+    await tester.pumpWidget(const MarkdownViewerApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Split view'));
+    await tester.pumpAndSettle();
+
+    final preview = find.byType(SelectableText);
+    final second = preview.evaluate().firstWhere(
+      (e) =>
+          (e.widget as SelectableText).textSpan!.toPlainText() ==
+          'Second paragraph.',
+    );
+    await tester.tap(find.byWidget(second.widget));
+    await tester.pumpAndSettle();
+
+    final editor = tester.widget<TextField>(find.byType(TextField));
+    expect(editor.controller!.selection.baseOffset, 27);
+  });
+
+  testWidgets('split view scrolls both panes together', (tester) async {
+    initialFile = {
+      'name': 'long.md',
+      'content': List.generate(120, (i) => 'Paragraph $i').join('\n\n'),
+      'uri': null,
+    };
+    useWideScreen(tester);
+    await tester.pumpWidget(const MarkdownViewerApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Split view'));
+    await tester.pumpAndSettle();
+
+    final previewScroll = find.descendant(
+      of: find.byType(SingleChildScrollView),
+      matching: find.byType(Scrollable),
+    );
+    double previewPixels() =>
+        tester.state<ScrollableState>(previewScroll.first).position.pixels;
+
+    expect(previewPixels(), 0);
+    await tester.drag(find.byType(TextField), const Offset(0, -600));
+    await tester.pumpAndSettle();
+    expect(previewPixels(), greaterThan(0));
   });
 }

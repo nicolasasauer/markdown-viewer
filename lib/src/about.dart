@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Shown in the app bar, the about dialog and as the launcher label.
+/// Store name, shown in the app bar and the about dialog. The launcher label
+/// (AndroidManifest.xml) is the shorter "Markdown Viewer".
 const appName = 'Basic Markdown Viewer';
 
 /// Keep in sync with `version` in pubspec.yaml (checked by a test).
@@ -38,7 +39,7 @@ Future<void> showAboutAppDialog(
             const Text(
               'A simple app for reading and editing Markdown files. '
               'No account, no ads, no tracking: your files never leave '
-              'your device.',
+              'your device. Free and open source under the MIT License.',
             ),
             const SizedBox(height: 8),
             ListTile(
