@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderEditable;
 
+import 'l10n.dart';
 import 'markdown_format.dart';
 
 /// Editor text controller that highlights search hits.
@@ -155,10 +156,10 @@ class MarkdownEditorState extends State<MarkdownEditor> {
               height: 1.5,
               color: theme.colorScheme.onSurface,
             ),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: 'Start writing Markdown…',
-              contentPadding: EdgeInsets.fromLTRB(16, 16, 16, 48),
+              hintText: context.l10n.editorHint,
+              contentPadding: const EdgeInsets.fromLTRB(16, 16, 16, 48),
             ),
           ),
         ),
@@ -180,6 +181,7 @@ class _FormatBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     Widget button(
       IconData icon,
       String tooltip,
@@ -205,58 +207,70 @@ class _FormatBar extends StatelessWidget {
                 builder: (context, value, _) => Row(
                   children: [
                     IconButton(
-                      tooltip: 'Undo',
-                      icon: const Icon(Icons.undo, semanticLabel: 'Undo'),
+                      tooltip: l.undo,
+                      icon: Icon(Icons.undo, semanticLabel: l.undo),
                       onPressed: value.canUndo ? undo.undo : null,
                     ),
                     IconButton(
-                      tooltip: 'Redo',
-                      icon: const Icon(Icons.redo, semanticLabel: 'Redo'),
+                      tooltip: l.redo,
+                      icon: Icon(Icons.redo, semanticLabel: l.redo),
                       onPressed: value.canRedo ? undo.redo : null,
                     ),
                   ],
                 ),
               ),
               const VerticalDivider(indent: 12, endIndent: 12),
-              button(Icons.title, 'Heading', cycleHeading),
-              button(Icons.format_bold, 'Bold', (v) => toggleInline(v, '**')),
+              button(Icons.title, l.heading, cycleHeading),
+              button(Icons.format_bold, l.bold, (v) => toggleInline(v, '**')),
               button(
                 Icons.format_italic,
-                'Italic',
+                l.italic,
                 (v) => toggleInline(v, '*'),
               ),
               button(
                 Icons.format_strikethrough,
-                'Strikethrough',
+                l.strikethrough,
                 (v) => toggleInline(v, '~~'),
               ),
-              button(Icons.code, 'Code', (v) => toggleInline(v, '`')),
-              button(Icons.link, 'Link', insertLink),
+              button(Icons.code, l.code, (v) => toggleInline(v, '`')),
+              button(
+                Icons.link,
+                l.link,
+                (v) => insertLink(v, label: l.linkText),
+              ),
               const VerticalDivider(indent: 12, endIndent: 12),
               button(
                 Icons.format_list_bulleted,
-                'Bulleted list',
+                l.bulletedList,
                 (v) => toggleLinePrefix(v, LinePrefix.bullet),
               ),
               button(
                 Icons.format_list_numbered,
-                'Numbered list',
+                l.numberedList,
                 (v) => toggleLinePrefix(v, LinePrefix.numbered),
               ),
               button(
                 Icons.checklist,
-                'Checklist',
+                l.checklist,
                 (v) => toggleLinePrefix(v, LinePrefix.checklist),
               ),
               button(
                 Icons.format_quote_outlined,
-                'Quote',
+                l.quote,
                 (v) => toggleLinePrefix(v, LinePrefix.quote),
               ),
               const VerticalDivider(indent: 12, endIndent: 12),
-              button(Icons.data_object, 'Code block', insertCodeBlock),
-              button(Icons.table_chart_outlined, 'Table', insertTable),
-              button(Icons.horizontal_rule, 'Horizontal line', insertRule),
+              button(Icons.data_object, l.codeBlock, insertCodeBlock),
+              button(
+                Icons.table_chart_outlined,
+                l.table,
+                (v) => insertTable(
+                  v,
+                  column1: l.tableColumn1,
+                  column2: l.tableColumn2,
+                ),
+              ),
+              button(Icons.horizontal_rule, l.horizontalLine, insertRule),
             ],
           ),
         ),

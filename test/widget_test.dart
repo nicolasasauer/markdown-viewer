@@ -163,7 +163,7 @@ void main() {
     initialFile = null;
     await tester.pumpWidget(const MarkdownViewerApp());
     await tester.pumpAndSettle();
-    expect(find.text(appName), findsWidgets);
+    expect(find.text('Basic Markdown Viewer'), findsWidgets);
 
     await tester.tap(find.text('Sample'));
     await tester.pumpAndSettle();
@@ -351,5 +351,22 @@ void main() {
     await tester.drag(find.byType(TextField), const Offset(0, -600));
     await tester.pumpAndSettle();
     expect(previewPixels(), greaterThan(0));
+  });
+
+  testWidgets('follows the system language (German)', (tester) async {
+    tester.platformDispatcher.localesTestValue = const [Locale('de', 'DE')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+    initialFile = null;
+    await tester.pumpWidget(const MarkdownViewerApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Datei öffnen'), findsOneWidget);
+    await tester.tap(find.text('Beispiel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Willkommen 👋'), findsOneWidget); // German sample
+
+    await tester.tap(find.byTooltip('Bearbeiten'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Fett'), findsOneWidget); // formatting bar
   });
 }

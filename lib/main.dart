@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'src/about.dart';
+import 'src/l10n.dart';
 import 'src/viewer_page.dart';
 
 void main() => runApp(const MarkdownViewerApp());
@@ -27,7 +27,10 @@ class _MarkdownViewerAppState extends State<MarkdownViewerApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: appName,
+      onGenerateTitle: (context) => context.l10n.appTitle,
+      // German or English, following the system language (English otherwise).
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
       theme: _theme(Brightness.light),
       darkTheme: _theme(Brightness.dark),
