@@ -97,10 +97,10 @@ upload key, add these repository secrets (*Settings â†’ Secrets and variables â†
 
 | Secret | Value |
 | --- | --- |
-| `ANDROID_KEYSTORE_BASE64` | `base64 -w0 upload-keystore.jks` |
-| `ANDROID_KEYSTORE_PASSWORD` | keystore password |
-| `ANDROID_KEY_ALIAS` | key alias |
-| `ANDROID_KEY_PASSWORD` | key password |
+| `KEYSTORE_BASE64` | `base64 -w0 upload-keystore.jks` |
+| `KEYSTORE_PASSWORD` | keystore password |
+| `KEY_ALIAS` | key alias |
+| `KEY_PASSWORD` | key password (optional, defaults to `KEYSTORE_PASSWORD`) |
 
 Locally, create `android/key.properties` (git-ignored) with `storeFile`, `storePassword`,
 `keyAlias`, `keyPassword`.

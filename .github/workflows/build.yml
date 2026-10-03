@@ -24,14 +24,16 @@ jobs:
 
       # Optional release signing. Add these repository secrets to sign with your
       # upload key; without them the release build is signed with the debug key.
-      #   ANDROID_KEYSTORE_BASE64  base64 of the .jks file (base64 -w0 upload-keystore.jks)
-      #   ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+      #   KEYSTORE_BASE64    base64 of the keystore file (base64 -w0 upload-keystore.jks)
+      #   KEYSTORE_PASSWORD  keystore password
+      #   KEY_ALIAS          key alias
+      #   KEY_PASSWORD       optional, defaults to KEYSTORE_PASSWORD (same for PKCS12 keystores)
       - name: Set up release signing
         env:
-          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
             echo "::notice::No signing secrets configured, using the debug key."
@@ -42,7 +44,7 @@ jobs:
           storeFile=upload-keystore.jks
           storePassword=$KEYSTORE_PASSWORD
           keyAlias=$KEY_ALIAS
-          keyPassword=$KEY_PASSWORD
+          keyPassword=${KEY_PASSWORD:-$KEYSTORE_PASSWORD}
           PROPS
 
       - run: flutter build apk --release --split-per-abi
