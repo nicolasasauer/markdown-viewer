@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <!-- Source of the launcher icon. 108x108 = Android adaptive icon canvas; keep the
+       glyph inside the central 66x66 safe zone. Mirrored in res/drawable/ic_launcher_*.xml. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5B6CFF"/>
+      <stop offset="1" stop-color="#9B5CE0"/>
+    </linearGradient>
+  </defs>
+  <rect width="108" height="108" fill="url(#bg)"/>
+  <path d="M34,65 L34,43 L45.5,55 L57,43 L57,65" fill="none" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M71,41 L71,60" fill="none" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round"/>
+  <path d="M64,58 L78,58 L71,67 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+</svg>
