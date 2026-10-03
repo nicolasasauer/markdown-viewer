@@ -2,7 +2,11 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'dart:io';
+
 import 'package:markdown_viewer/main.dart';
+import 'package:markdown_viewer/src/about.dart';
 
 void main() {
   const channel = MethodChannel('markdown_viewer/file');
@@ -153,7 +157,7 @@ void main() {
     initialFile = null;
     await tester.pumpWidget(const MarkdownViewerApp());
     await tester.pumpAndSettle();
-    expect(find.text('Markdown Viewer'), findsWidgets);
+    expect(find.text(appName), findsWidgets);
 
     await tester.tap(find.text('Sample'));
     await tester.pumpAndSettle();
@@ -204,5 +208,29 @@ void main() {
     await tester.tap(find.byTooltip('Larger text'));
     await tester.pumpAndSettle();
     expect(findSpan(tester, 'Notes').style!.fontSize!, greaterThan(before));
+  });
+
+  testWidgets('about dialog links to the source code', (tester) async {
+    await tester.pumpWidget(const MarkdownViewerApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('About'));
+    await tester.pumpAndSettle();
+    expect(find.text('Version $appVersion'), findsOneWidget);
+
+    await tester.tap(find.text('Source code'));
+    await tester.pumpAndSettle();
+    expect(opened, [sourceCodeUrl]);
+  });
+
+  test('appVersion matches pubspec.yaml', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    final version = RegExp(
+      r'^version: ([^+\s]+)',
+      multiLine: true,
+    ).firstMatch(pubspec)!.group(1);
+    expect(appVersion, version);
   });
 }

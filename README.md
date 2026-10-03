@@ -1,4 +1,4 @@
-# Markdown Viewer
+# Basic Markdown Viewer
 
 A small Android app for reading and editing Markdown (`.md`) files. It shows up as an
 **"Open with"** option for Markdown files in file managers, mail apps and so on.
@@ -31,6 +31,7 @@ Modes at the top, plus split view on wide screens:
 - Asks before throwing away unsaved changes; `•` next to the file name marks unsaved changes
 - A− / A+ text size, light and dark theme
 - Ctrl+S / Ctrl+O with a hardware keyboard
+- ⋮ → *About*: version, link to this repository, open-source licenses
 
 ## How it works
 
@@ -42,6 +43,7 @@ Modes at the top, plus split view on wide screens:
 | Screen, modes, save / discard logic | `lib/src/viewer_page.dart` |
 | Rendered preview and its styles | `lib/src/markdown_preview.dart` |
 | Editor | `lib/src/markdown_editor.dart` |
+| About dialog, app name and version | `lib/src/about.dart` |
 
 Rendering uses [`flutter_markdown_plus`](https://pub.dev/packages/flutter_markdown_plus).
 File access goes through the Android Storage Access Framework directly (no plugins), so a
@@ -55,6 +57,14 @@ The launcher icon is defined in `tool/icon/icon.svg`:
   `res/drawable/ic_launcher_{background,foreground,monochrome}.xml`, `res/mipmap-anydpi-v26/ic_launcher.xml`
 - `res/mipmap-*/ic_launcher.png` for older Android versions
 - store icon `store/icon-512.png`: `node tool/icon/render.js` (needs Playwright)
+
+## Google Play
+
+- Store texts (de/en), data safety answers and checklist: `store/listing.md`
+- Privacy policy: `PRIVACY.md`
+- Upload the `.aab` from the `markdown-viewer-aab` build artifact, signed with your upload key
+  (see below). Bump `version` in `pubspec.yaml` *and* `appVersion` in `lib/src/about.dart`
+  for each release (a test checks they match).
 
 ## Build
 

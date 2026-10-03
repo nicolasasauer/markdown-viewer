@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'about.dart';
 import 'file_bridge.dart';
 import 'markdown_editor.dart';
 import 'markdown_preview.dart';
@@ -298,7 +299,7 @@ class _ViewerPageState extends State<ViewerPage> {
           ],
           Flexible(
             child: Text(
-              _hasDocument ? _fileName : 'Markdown Viewer',
+              _hasDocument ? _fileName : appName,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -447,6 +448,14 @@ class _ViewerPageState extends State<ViewerPage> {
           ),
         ),
       ],
+      const PopupMenuDivider(),
+      PopupMenuItem(
+        value: () => showAboutAppDialog(context, onOpenUrl: _openLink),
+        child: const ListTile(
+          leading: Icon(Icons.info_outline),
+          title: Text('About'),
+        ),
+      ),
     ];
     return PopupMenuButton<VoidCallback>(
       tooltip: 'More',
@@ -500,7 +509,7 @@ class _ViewerPageState extends State<ViewerPage> {
               color: theme.colorScheme.primary,
             ),
             const SizedBox(height: 16),
-            Text('Markdown Viewer', style: theme.textTheme.headlineSmall),
+            Text(appName, style: theme.textTheme.headlineSmall),
             const SizedBox(height: 8),
             Text(
               'Open a .md file, start a new one or look at the sample.',

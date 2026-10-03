@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'src/about.dart';
 import 'src/viewer_page.dart';
 
 void main() => runApp(const MarkdownViewerApp());
@@ -26,7 +27,7 @@ class _MarkdownViewerAppState extends State<MarkdownViewerApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Markdown Viewer',
+      title: appName,
       debugShowCheckedModeBanner: false,
       theme: _theme(Brightness.light),
       darkTheme: _theme(Brightness.dark),
