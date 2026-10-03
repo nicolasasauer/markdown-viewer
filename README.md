@@ -38,6 +38,7 @@ Modes at the top, plus split view on wide screens:
   *New*, *Save*, *Save as…*, *Copy all*, *Sample*
 - Asks before throwing away unsaved changes; `•` next to the file name marks unsaved changes
 - A− / A+ text size, light and dark theme
+- German or English, following the system language (texts in `lib/l10n/*.arb`)
 - Ctrl+S / Ctrl+O with a hardware keyboard
 - ⋮ → *About*: version, link to this repository, open-source licenses
 
@@ -54,6 +55,7 @@ Modes at the top, plus split view on wide screens:
 | Editor, formatting bar, search highlight | `lib/src/markdown_editor.dart` |
 | Formatting actions (pure text edits) | `lib/src/markdown_format.dart` |
 | About dialog, app name and version | `lib/src/about.dart` |
+| Translations (German / English), generated with `flutter gen-l10n` | `lib/l10n/` |
 
 Rendering uses [`flutter_markdown_plus`](https://pub.dev/packages/flutter_markdown_plus).
 File access goes through the Android Storage Access Framework directly (no plugins), so a

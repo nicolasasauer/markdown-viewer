@@ -35,3 +35,41 @@ void main() {
 
 Learn more about Markdown: [markdownguide.org](https://www.markdownguide.org)
 ''';
+
+/// German version of [sampleMarkdown].
+const sampleMarkdownDe = '''# Willkommen 👋
+
+Das ist ein **moderner Markdown-Viewer**, gebaut mit *Flutter*.
+
+## Funktionen
+
+- Dateien öffnen (`.md`, `.markdown`, `.txt`)
+- Vorschau, Editor und geteilte Ansicht
+- Änderungen zurück in die Datei speichern
+- Helles & dunkles Design
+- Einstellbare Schriftgröße
+- [x] GitHub Flavored Markdown
+- [ ] Kaffee kochen
+
+## Code
+
+```dart
+void main() {
+  print('Hallo Markdown!');
+}
+```
+
+> Zitate werden hervorgehoben.
+
+## Tabelle
+
+| Element         | Unterstützt |
+|-----------------|-------------|
+| Tabellen        | ✅          |
+| Links           | ✅          |
+| ~~Durchgestr.~~ | ✅          |
+
+---
+
+Mehr über Markdown: [markdownguide.org](https://www.markdownguide.org)
+''';

@@ -184,11 +184,10 @@ TextEditingValue cycleHeading(TextEditingValue value) {
 
 /// Turns the selection into a link and selects the URL part, or inserts a
 /// link template with "text" selected.
-TextEditingValue insertLink(TextEditingValue value) {
+TextEditingValue insertLink(TextEditingValue value, {String label = 'text'}) {
   final sel = _selectionOf(value);
   final s = sel.start;
   if (sel.isCollapsed) {
-    const label = 'text';
     return _replace(
       value,
       s,
@@ -243,11 +242,15 @@ TextEditingValue insertCodeBlock(TextEditingValue value) {
   );
 }
 
-TextEditingValue insertTable(TextEditingValue value) => insertBlock(
+TextEditingValue insertTable(
+  TextEditingValue value, {
+  String column1 = 'Column 1',
+  String column2 = 'Column 2',
+}) => insertBlock(
   value,
-  '| Column 1 | Column 2 |\n| --- | --- |\n|  |  |',
+  '| $column1 | $column2 |\n| --- | --- |\n|  |  |',
   cursor: 2,
-  selectLength: 'Column 1'.length,
+  selectLength: column1.length,
 );
 
 TextEditingValue insertRule(TextEditingValue value) =>

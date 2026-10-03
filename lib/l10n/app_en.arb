@@ -1,0 +1,110 @@
+{
+  "@@locale": "en",
+  "appTitle": "Basic Markdown Viewer",
+  "modePreview": "Preview",
+  "modeEdit": "Edit",
+  "modeSplit": "Split view",
+  "save": "Save",
+  "saveAs": "Save as…",
+  "saveAsShort": "Save as",
+  "cancel": "Cancel",
+  "discard": "Discard",
+  "discardTitle": "Discard changes?",
+  "unsavedChanges": "\"{name}\" has unsaved changes.",
+  "@unsavedChanges": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "saved": "Saved {name}",
+  "@saved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotOpen": "Could not open file: {error}",
+  "@couldNotOpen": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "couldNotSave": "Could not save file: {error}",
+  "@couldNotSave": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "cannotOpenLink": "Cannot open link: {link}",
+  "@cannotOpenLink": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "noAppForLink": "No app can open {link}",
+  "@noAppForLink": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "documentCopied": "Document copied",
+  "search": "Search",
+  "previousMatch": "Previous match",
+  "nextMatch": "Next match",
+  "closeSearch": "Close search",
+  "smallerText": "Smaller text",
+  "largerText": "Larger text",
+  "openFile": "Open file",
+  "lightTheme": "Light theme",
+  "darkTheme": "Dark theme",
+  "newDocument": "New",
+  "copyAll": "Copy all",
+  "syncScrolling": "Sync scrolling",
+  "sample": "Sample",
+  "more": "More",
+  "welcomeText": "Open a .md file, start a new one or look at the sample.",
+  "nothingToShow": "Nothing to show yet.",
+  "editorHint": "Start writing Markdown…",
+  "undo": "Undo",
+  "redo": "Redo",
+  "heading": "Heading",
+  "bold": "Bold",
+  "italic": "Italic",
+  "strikethrough": "Strikethrough",
+  "code": "Code",
+  "link": "Link",
+  "bulletedList": "Bulleted list",
+  "numberedList": "Numbered list",
+  "checklist": "Checklist",
+  "quote": "Quote",
+  "codeBlock": "Code block",
+  "table": "Table",
+  "horizontalLine": "Horizontal line",
+  "tableColumn1": "Column 1",
+  "tableColumn2": "Column 2",
+  "linkText": "text",
+  "about": "About",
+  "aboutText": "A simple app for reading and editing Markdown files. No account, no ads, no tracking: your files never leave your device. Free and open source under the MIT License.",
+  "version": "Version {version}",
+  "@version": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "sourceCode": "Source code",
+  "licenses": "Open-source licenses",
+  "close": "Close"
+}

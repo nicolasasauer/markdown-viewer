@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:markdown/markdown.dart' as md;
 
+import 'l10n.dart';
 import 'markdown_blocks.dart';
 
 /// The rendered document (read-only), GitHub Flavored Markdown.
@@ -101,7 +102,7 @@ class _MarkdownPreviewState extends State<MarkdownPreview> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            'Nothing to show yet.',
+            context.l10n.nothingToShow,
             style: theme.textTheme.bodyLarge?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

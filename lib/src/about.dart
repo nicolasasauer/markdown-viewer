@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Store name, shown in the app bar and the about dialog. The launcher label
-/// (AndroidManifest.xml) is the shorter "Markdown Viewer".
-const appName = 'Basic Markdown Viewer';
+import 'l10n.dart';
 
 /// Keep in sync with `version` in pubspec.yaml (checked by a test).
 const appVersion = '1.0.0';
@@ -18,44 +16,41 @@ Future<void> showAboutAppDialog(
     context: context,
     builder: (context) {
       final theme = Theme.of(context);
+      final l = context.l10n;
       return AlertDialog(
         icon: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: Image.asset('assets/icon.png', width: 64, height: 64),
         ),
-        title: const Text(appName),
+        title: Text(l.appTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Version $appVersion',
+              l.version(appVersion),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'A simple app for reading and editing Markdown files. '
-              'No account, no ads, no tracking: your files never leave '
-              'your device. Free and open source under the MIT License.',
-            ),
+            Text(l.aboutText),
             const SizedBox(height: 8),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.code),
-              title: const Text('Source code'),
+              title: Text(l.sourceCode),
               subtitle: const Text('github.com/nicolasasauer/markdown-viewer'),
               onTap: () => onOpenUrl(sourceCodeUrl),
             ),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.description_outlined),
-              title: const Text('Open-source licenses'),
+              title: Text(l.licenses),
               onTap: () => showLicensePage(
                 context: context,
-                applicationName: appName,
+                applicationName: l.appTitle,
                 applicationVersion: appVersion,
               ),
             ),
@@ -64,7 +59,7 @@ Future<void> showAboutAppDialog(
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(l.close),
           ),
         ],
       );
