@@ -32,6 +32,7 @@ live preview side by side.
 • Preview, editor and split view with synced scrolling
 • Formatting bar: headings, bold, italic, lists, checklists, links, tables, code
 • Search with highlighted results
+• Print or save as PDF
 • GitHub Flavored Markdown: tables, task lists, strikethrough, code
 • Saves back to the file you opened, or "Save as" a new one
 • Adjustable text size, light and dark theme
@@ -58,6 +59,7 @@ Editor und Live-Vorschau nebeneinander.
 • Vorschau, Editor und geteilte Ansicht mit synchronem Scrollen
 • Formatierungsleiste: Überschriften, fett, kursiv, Listen, Checklisten, Links, Tabellen, Code
 • Suche mit hervorgehobenen Treffern
+• Drucken oder als PDF speichern
 • GitHub Flavored Markdown: Tabellen, Checklisten, Durchgestrichen, Code
 • Speichert zurück in die geöffnete Datei oder „Speichern unter“
 • Einstellbare Schriftgröße, helles und dunkles Design

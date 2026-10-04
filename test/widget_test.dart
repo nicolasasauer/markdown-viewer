@@ -13,6 +13,7 @@ void main() {
   const channel = MethodChannel('markdown_viewer/file');
   final saved = <Map<Object?, Object?>>[];
   final opened = <String>[];
+  final printed = <Map<Object?, Object?>>[];
   const sample =
       '# Notes\n\nSome **bold** text and a [link](https://example.com).\n';
   Object? initialFile;
@@ -20,6 +21,7 @@ void main() {
   setUp(() {
     saved.clear();
     opened.clear();
+    printed.clear();
     initialFile = {
       'name': 'notes.md',
       'content': sample,
@@ -37,6 +39,9 @@ void main() {
               final args = call.arguments as Map<Object?, Object?>;
               saved.add(args);
               return {'name': args['name'], 'uri': 'content://test/new.md'};
+            case 'printHtml':
+              printed.add(call.arguments as Map<Object?, Object?>);
+              return null;
             case 'openUrl':
               opened.add(
                 (call.arguments as Map<Object?, Object?>)['url'] as String,
@@ -368,5 +373,20 @@ void main() {
     await tester.tap(find.byTooltip('Bearbeiten'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Fett'), findsOneWidget); // formatting bar
+  });
+
+  testWidgets('print / save as PDF hands the rendered HTML to Android', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const MarkdownViewerApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Print / Save as PDF'));
+    await tester.pumpAndSettle();
+
+    expect(printed.single['name'], 'notes'); // PDF file name without .md
+    expect(printed.single['html'], contains('<h1>Notes</h1>'));
   });
 }

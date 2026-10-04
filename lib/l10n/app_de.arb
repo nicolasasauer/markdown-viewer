@@ -57,5 +57,7 @@
   "version": "Version {version}",
   "sourceCode": "Quellcode",
   "licenses": "Open-Source-Lizenzen",
-  "close": "Schließen"
+  "close": "Schließen",
+  "printPdf": "Drucken / Als PDF speichern",
+  "couldNotPrint": "Drucken nicht möglich: {error}"
 }
