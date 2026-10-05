@@ -106,5 +106,14 @@
   },
   "sourceCode": "Source code",
   "licenses": "Open-source licenses",
-  "close": "Close"
+  "close": "Close",
+  "printPdf": "Print / Save as PDF",
+  "couldNotPrint": "Could not print: {error}",
+  "@couldNotPrint": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  }
 }

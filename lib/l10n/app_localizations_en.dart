@@ -198,4 +198,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get close => 'Close';
+
+  @override
+  String get printPdf => 'Print / Save as PDF';
+
+  @override
+  String couldNotPrint(String error) {
+    return 'Could not print: $error';
+  }
 }

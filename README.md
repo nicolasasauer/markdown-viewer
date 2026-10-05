@@ -36,6 +36,8 @@ Modes at the top, plus split view on wide screens:
   strikethrough, links (open in the browser). Images are shown as placeholders.
 - Open from other apps ("Open with" for `.md` / `.markdown`), share sheet, *Open file*,
   *New*, *Save*, *Save as…*, *Copy all*, *Sample*
+- **Print / Save as PDF** (⋮): the system print dialog with the document rendered as a clean,
+  light page (real text, clickable links); choose "Save as PDF" or a printer
 - Asks before throwing away unsaved changes; `•` next to the file name marks unsaved changes
 - A− / A+ text size, light and dark theme
 - German or English, following the system language (texts in `lib/l10n/*.arb`)
@@ -47,13 +49,14 @@ Modes at the top, plus split view on wide screens:
 | Part | File |
 | --- | --- |
 | Intent filters (`text/markdown`, `*.md`, share sheet) | `android/app/src/main/AndroidManifest.xml` |
-| Reading intents, SAF open / save as, writing back, opening links | `android/app/src/main/kotlin/com/nicolas/markdown_viewer/MainActivity.kt` |
+| Reading intents, SAF open / save as, writing back, opening links, printing | `android/app/src/main/kotlin/com/nicolas/markdown_viewer/MainActivity.kt` |
 | Platform channel `markdown_viewer/file` (Dart side) | `lib/src/file_bridge.dart` |
 | Screen, modes, save / discard logic | `lib/src/viewer_page.dart` |
 | Rendered preview (block by block), search highlight, styles | `lib/src/markdown_preview.dart` |
 | Splitting the source into blocks (preview ↔ source mapping), search | `lib/src/markdown_blocks.dart` |
 | Editor, formatting bar, search highlight | `lib/src/markdown_editor.dart` |
 | Formatting actions (pure text edits) | `lib/src/markdown_format.dart` |
+| Markdown → print-friendly HTML (PDF export) | `lib/src/print_html.dart` |
 | About dialog, app name and version | `lib/src/about.dart` |
 | Translations (German / English), generated with `flutter gen-l10n` | `lib/l10n/` |
 

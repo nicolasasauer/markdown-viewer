@@ -72,6 +72,11 @@ class FileBridge {
   Future<bool> openUrl(String url) async =>
       await _channel.invokeMethod<bool>('openUrl', {'url': url}) ?? false;
 
+  /// Opens the system print dialog for [html] (which offers "Save as PDF").
+  /// [name] is the print job name, used as the default PDF file name.
+  Future<void> printHtml(String name, String html) =>
+      _channel.invokeMethod<void>('printHtml', {'name': name, 'html': html});
+
   OpenedFile? _toFileOrNull(Object? raw) => raw == null ? null : _toFile(raw);
 
   OpenedFile _toFile(Object? raw) {

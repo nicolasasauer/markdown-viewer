@@ -7,7 +7,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.print.PrintAttributes
+import android.print.PrintManager
 import android.provider.OpenableColumns
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -20,6 +24,7 @@ import java.util.concurrent.Executors
  *  - Storage Access Framework pickers for "Open" and "Save as"
  *  - writing back to the opened content:// or file:// URI
  *  - opening links from the preview in another app (browser, mail, ...)
+ *  - printing / "Save as PDF" through the system print dialog
  */
 class MainActivity : FlutterActivity() {
     private var channel: MethodChannel? = null
@@ -29,6 +34,9 @@ class MainActivity : FlutterActivity() {
     private var pendingOpen: MethodChannel.Result? = null
     private var pendingCreate: MethodChannel.Result? = null
     private var pendingCreateContent: String? = null
+
+    // Kept alive until the print job has its content.
+    private var printWebView: WebView? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -56,6 +64,16 @@ class MainActivity : FlutterActivity() {
                                     mainHandler.post { result.error("save_failed", e.message ?: e.toString(), null) }
                                 }
                             }
+                        }
+                    }
+                    "printHtml" -> {
+                        val html = call.argument<String>("html")
+                        val name = call.argument<String>("name") ?: "Document"
+                        if (html == null) {
+                            result.error("bad_args", "html is required", null)
+                        } else {
+                            printHtml(name, html)
+                            result.success(null)
                         }
                     }
                     "openUrl" -> {
@@ -122,6 +140,28 @@ class MainActivity : FlutterActivity() {
         } else {
             intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
         }
+
+    // ---- Printing ------------------------------------------------------------
+
+    /** Renders [html] off-screen and opens the system print dialog ("Save as PDF"). */
+    private fun printHtml(name: String, html: String) {
+        val webView = WebView(this)
+        webView.settings.javaScriptEnabled = false
+        webView.settings.blockNetworkLoads = true
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView, url: String?) {
+                val printManager = getSystemService(PRINT_SERVICE) as PrintManager
+                printManager.print(
+                    name,
+                    view.createPrintDocumentAdapter(name),
+                    PrintAttributes.Builder().build(), // paper size from the device locale
+                )
+                printWebView = null
+            }
+        }
+        printWebView = webView
+        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
+    }
 
     // ---- Storage Access Framework -------------------------------------------
 

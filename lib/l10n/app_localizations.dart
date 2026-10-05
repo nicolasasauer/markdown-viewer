@@ -445,6 +445,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
+
+  /// No description provided for @printPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Print / Save as PDF'**
+  String get printPdf;
+
+  /// No description provided for @couldNotPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not print: {error}'**
+  String couldNotPrint(String error);
 }
 
 class _AppLocalizationsDelegate

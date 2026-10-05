@@ -9,6 +9,7 @@ import 'l10n.dart';
 import 'markdown_blocks.dart';
 import 'markdown_editor.dart';
 import 'markdown_preview.dart';
+import 'print_html.dart';
 import 'sample.dart';
 
 /// The modes at the top. [split] is only offered on wide screens.
@@ -348,6 +349,22 @@ class _ViewerPageState extends State<ViewerPage> {
   void _changeFontSize(double delta) =>
       setState(() => _fontSize = (_fontSize + delta).clamp(10, 32));
 
+  /// Opens the system print dialog, which also offers "Save as PDF".
+  Future<void> _print() async {
+    final title = _fileName.replaceFirst(
+      RegExp(r'\.(md|markdown|txt)$', caseSensitive: false),
+      '',
+    );
+    try {
+      await _bridge.printHtml(
+        title,
+        markdownToPrintHtml(_controller.text, title: title),
+      );
+    } catch (e) {
+      _snack(_l.couldNotPrint(_errorText(e)));
+    }
+  }
+
   void _copyAll() {
     Clipboard.setData(ClipboardData(text: _controller.text));
     _snack(_l.documentCopied);
@@ -546,6 +563,14 @@ class _ViewerPageState extends State<ViewerPage> {
         PopupMenuItem(
           value: _openSearch,
           child: ListTile(leading: Icon(Icons.search), title: Text(_l.search)),
+        ),
+      if (_hasDocument)
+        PopupMenuItem(
+          value: _print,
+          child: ListTile(
+            leading: const Icon(Icons.print_outlined),
+            title: Text(_l.printPdf),
+          ),
         ),
       if (_hasDocument)
         PopupMenuItem(
